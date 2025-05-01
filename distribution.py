@@ -13,7 +13,7 @@ for col in numeric_df.columns:
 
 num_vars = len(numeric_df.columns)
 
-fig_hist, axes_hist = plt.subplots(4, 3, figsize=(15, 16))
+fig_hist, axes_hist = plt.subplots(3, 4, figsize=(20, 15))
 axes_hist = axes_hist.flatten()
 
 for i, col in enumerate(numeric_df.columns):
@@ -28,9 +28,8 @@ for j in range(i + 1, len(axes_hist)):
 
 plt.tight_layout()
 plt.savefig('histograms_all.png', dpi=150, bbox_inches='tight')
-plt.show()
 
-fig_box, axes_box = plt.subplots(4, 3, figsize=(15, 16))
+fig_box, axes_box = plt.subplots(3, 4, figsize=(20, 15))
 axes_box = axes_box.flatten()
 
 for i, col in enumerate(numeric_df.columns):
@@ -43,4 +42,3 @@ for j in range(i + 1, len(axes_box)):
 
 plt.tight_layout()
 plt.savefig('boxplots_all.png', dpi=150, bbox_inches='tight')
-plt.show()
