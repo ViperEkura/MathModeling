@@ -8,7 +8,7 @@ df = pd.read_csv('processed_data.csv', na_values=['NA', 'NaN', 'nan'])
 
 selected_columns = [
     'PM2.5', 'PM10', 'SO2', 'NO2', 'CO', 'O3',
-    'TEMP', 'PRES', 'DEWP', 'RAIN', 'WSPM', 'wd'
+    'TEMP', 'PRES', 'DEWP', 'RAIN', 'WSPM'
 ]
 
 available_columns = [col for col in selected_columns if col in df.columns]
@@ -21,14 +21,11 @@ numeric_df.dropna(axis=1, how='all', inplace=True)
 
 # 计算皮尔逊相关系数矩阵
 corr_matrix = numeric_df.corr()
-# 创建一个上三角掩码（mask）
-mask = np.triu(np.ones_like(corr_matrix, dtype=bool))
 
 #  绘制热力图（仅显示上三角部分）
 plt.figure(figsize=(12, 10))
 sns.heatmap(
     corr_matrix,
-    mask=mask,              # 应用上三角掩码
     annot=True,             # 显示相关系数数值
     fmt=".2f",              # 数值保留两位小数
     cmap='coolwarm',        # 颜色映射方案
@@ -39,3 +36,22 @@ sns.heatmap(
 plt.title("Upper Triangle of Correlation Matrix")
 plt.tight_layout()
 plt.savefig('correlation_matrix.png')
+
+# 选择几个高度相关或感兴趣的变量对
+interesting_pairs = [
+    ('PM2.5', 'PM10'),
+    ('SO2', 'NO2'),
+    ('TEMP', 'O3'),
+    ('TEMP', 'DEWP'),
+    ('PRES', 'DEWP')
+]
+
+# 为每对变量绘制散点图
+for x, y in interesting_pairs:
+    if x in numeric_df.columns and y in numeric_df.columns:
+        sns.jointplot(data=numeric_df, x=x, y=y, kind='reg', 
+                     joint_kws={'scatter_kws': {'alpha': 0.5}})
+        plt.suptitle(f"{x} vs {y}", y=1.02)
+        plt.tight_layout()
+        plt.savefig(f'scatter_{x}_vs_{y}.png')
+        plt.show()

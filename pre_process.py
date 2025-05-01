@@ -87,3 +87,4 @@ plt.yticks(rotation=0)
 
 plt.tight_layout()
 plt.savefig('missing_values_comparison.png')
+
