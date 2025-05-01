@@ -5,16 +5,16 @@ df = pd.read_csv('processed_data.csv')
 df['datetime'] = pd.to_datetime(df['datetime'])
 df.sort_values(by='datetime', inplace=True)
 
+# 提取时间特征
 df['hour'] = df['datetime'].dt.hour
-df['day_of_year'] = df['datetime'].dt.dayofyear
-df['cycle_120'] = (df['day_of_year'] - 1) // 120 + 1
+df['month'] = df['datetime'].dt.month
 df['year'] = df['datetime'].dt.year
 
 features = ['PM2.5', 'PM10', 'SO2', 'NO2', 'CO', 'O3']
 
 time_periods = {
     "Hourly": ("hour", '24h'),
-    "Cycle_120d": ("cycle_120", '120d'),
+    "Monthly": ("month", 'Monthly'), 
     "Yearly": ("year", 'Yearly')
 }
 
@@ -25,13 +25,23 @@ for period, (group_key, suffix) in time_periods.items():
     for i, feature in enumerate(features):
         avg_value = df.groupby(group_key)[feature].mean()
         ax = axes[i // 4, i % 4]
-        ax.plot(avg_value.index, avg_value.values, marker='o', markersize=4)
+        
+        # 修改为柱状图，并调整样式
+        ax.bar(avg_value.index, avg_value.values, color='skyblue', edgecolor='black')
+        
         ax.set_title(f'{feature} - {suffix}')
-        ax.set_xlabel(group_key if group_key != 'hour' else "Hour of Day")
+        
+        # 设置坐标轴标签
+        xlabel_map = {
+            'hour': "Hour of Day",
+            'month': "Month",
+            'year': "Year"
+        }
+        ax.set_xlabel(xlabel_map.get(group_key, group_key))
         ax.set_ylabel("Average Value")
-        ax.grid(True)
-    
-    # 如果特征数量不是子图总数的倍数，则删除多余的子图
+        ax.grid(True, axis='y')  # 仅显示水平网格线
+
+    # 清理多余子图
     for j in range(len(features), 2 * 4):
         fig.delaxes(axes[j // 4, j % 4])
         

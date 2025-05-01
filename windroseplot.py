@@ -2,19 +2,18 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import windrose
 
-features = ['PM2.5', 'PM10', 'SO2', 'NO2', 'CO', 'O3', 
-            'TEMP', 'PRES', 'DEWP', 'RAIN', 'WSPM'] 
+features = ['PM2.5', 'PM10', 'SO2', 'NO2', 'CO', 'O3'] 
 
 df = pd.read_csv('processed_data.csv', 
                 usecols=['wd'] + features,
                 na_values=['NA', 'NaN', 'nan'])
 
 # 绘制图像
-fig = plt.figure(figsize=(20, 15))
+fig = plt.figure(figsize=(20, 10))
 plt.subplots_adjust(wspace=0.5, hspace=0.5)
 
 for i, feature in enumerate(features, 1):
-    ax = fig.add_subplot(3, 4, i, projection="windrose")
+    ax = fig.add_subplot(2, 4, i, projection="windrose")
     
     ax.bar(df['wd'], 
            df[feature],
