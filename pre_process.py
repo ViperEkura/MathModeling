@@ -58,6 +58,8 @@ for feature in features_without_wd:
         processed_df[feature].interpolate(method='linear')  # 小段线性插值
     )
 
+processed_df.to_csv('processed_data.csv', index=False)
+
 # 绘制处理前后的缺失值对比图
 plt.figure(figsize=(15, 6))
 
