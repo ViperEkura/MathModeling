@@ -20,8 +20,6 @@ numeric_df.dropna(axis=1, how='all', inplace=True)
 
 # 计算皮尔逊相关系数矩阵
 corr_matrix = numeric_df.corr()
-
-#  绘制热力图（仅显示上三角部分）
 plt.figure(figsize=(12, 10))
 sns.heatmap(
     corr_matrix,
@@ -37,20 +35,22 @@ plt.tight_layout()
 plt.savefig('correlation_matrix.png')
 
 # 选择几个高度相关或感兴趣的变量对
-interesting_pairs = [
-    ('PM2.5', 'PM10'),
-    ('SO2', 'NO2'),
-    ('TEMP', 'O3'),
-    ('TEMP', 'DEWP'),
-    ('PRES', 'DEWP')
-]
+sns.set_theme(font_scale=1.2)
+plt.rcParams['axes.titlesize'] = 16 
+plt.rcParams['axes.labelsize'] = 14 
 
-# 为每对变量绘制散点图
-for x, y in interesting_pairs:
-    if x in numeric_df.columns and y in numeric_df.columns:
-        sns.jointplot(data=numeric_df, x=x, y=y, kind='reg', 
-                     joint_kws={'scatter_kws': {'alpha': 0.5}})
-        plt.suptitle(f"{x} vs {y}", y=1.02)
-        plt.tight_layout()
-        plt.savefig(f'scatter_{x}_vs_{y}.png')
-        plt.show()
+plt.figure(figsize=(32, 24))
+pair_plot = sns.pairplot(
+    numeric_df[selected_columns],
+    kind='reg',
+    diag_kind='kde',
+    plot_kws={
+        'scatter_kws': {'alpha': 0.6, 's': 20}, 
+        'line_kws': {'color': 'purple'}  
+    },
+    diag_kws={'fill': True}
+)
+
+pair_plot.figure.suptitle("Pairwise Relationships of Air Quality Features", y=1.02)
+plt.tight_layout()
+plt.savefig('pair_matrix.png', bbox_inches='tight')
