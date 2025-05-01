@@ -1,0 +1,39 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import windrose
+
+features = ['PM2.5', 'PM10', 'SO2', 'NO2', 'CO', 'O3', 
+            'TEMP', 'PRES', 'DEWP', 'RAIN', 'WSPM'] 
+
+df = pd.read_csv('data.csv', 
+                usecols=['wd'] + features,
+                na_values=['NA', 'NaN', 'nan'])
+
+direction_map = {
+    'N':0, 'NNE':22.5, 'NE':45, 'ENE':67.5,
+    'E':90, 'ESE':112.5, 'SE':135, 'SSE':157.5,
+    'S':180, 'SSW':202.5, 'SW':225, 'WSW':247.5,
+    'W':270, 'WNW':292.5, 'NW':315, 'NNW':337.5
+}
+df['wd_angle'] = df['wd'].map(direction_map)
+clean_df = df.dropna(subset=['wd_angle'] + features)
+
+# 绘制图像
+fig = plt.figure(figsize=(20, 15))
+plt.subplots_adjust(wspace=0.5, hspace=0.5)
+
+for i, feature in enumerate(features, 1):
+    ax = fig.add_subplot(3, 4, i, projection="windrose")
+    
+    ax.bar(clean_df['wd_angle'], 
+           clean_df[feature],
+           bins=8,             # 按特征值分8个区间
+           cmap=plt.cm.plasma,
+           edgecolor='gray')
+    
+    ax.set_title(f"Wind with {feature}", pad=20)
+    ax.set_legend(title=feature + ' Values', bbox_to_anchor=(1.1, 0.5))
+
+plt.suptitle("Multi-Feature Wind Rose Analysis", y=0.95, fontsize=14)
+plt.tight_layout()
+plt.savefig('multi_feature_wind_rose.png')
