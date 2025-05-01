@@ -1,7 +1,6 @@
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-import numpy as np
 
 
 df = pd.read_csv('processed_data.csv', na_values=['NA', 'NaN', 'nan'])
