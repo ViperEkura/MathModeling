@@ -19,12 +19,12 @@ time_periods = {
 }
 
 for period, (group_key, suffix) in time_periods.items():
-    fig, axes = plt.subplots(2, 4, figsize=(24, 12))
+    fig, axes = plt.subplots(2, 3, figsize=(24, 12))
     fig.suptitle(f'{period} Average of Features', fontsize=16)
     
     for i, feature in enumerate(features):
         avg_value = df.groupby(group_key)[feature].mean()
-        ax = axes[i // 4, i % 4]
+        ax = axes[i // 3, i % 3]
         
         # 修改为柱状图，并调整样式
         ax.bar(avg_value.index, avg_value.values, color='skyblue', edgecolor='black')
@@ -41,9 +41,6 @@ for period, (group_key, suffix) in time_periods.items():
         ax.set_ylabel("Average Value")
         ax.grid(True, axis='y')  # 仅显示水平网格线
 
-    # 清理多余子图
-    for j in range(len(features), 2 * 4):
-        fig.delaxes(axes[j // 4, j % 4])
         
     plt.tight_layout()
     plt.savefig(f'average_features_{period}.png', dpi=150, bbox_inches='tight')
