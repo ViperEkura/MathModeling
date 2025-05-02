@@ -6,7 +6,6 @@ from modeling import Predictor, r2_score_func
 from torch.utils.data import Dataset, DataLoader
 
 
-# 给出静态稳定条件下的计算方法
 class StaticCondition(Dataset):
     def __init__(self, file_path, feature_columns, target_column):
         self.data = pd.read_csv(file_path)
@@ -27,8 +26,8 @@ class StaticCondition(Dataset):
 
 def main():
     model_path = 'model.pt'
-    input_features = ['PM10','SO2', 'NO2', 'CO', 'O3', 'TEMP',
-                      'PRES', 'RAIN', 'WSPM', 'wd_cos', 'wd_sin']
+    input_features = ['PM10','SO2', 'NO2', 'CO', 'O3', 'TEMP'
+                      , 'PRES', 'RAIN', 'WSPM', 'wd_cos', 'wd_sin']
     target_feature = ['PM2.5']
 
     # 加载模型
@@ -64,8 +63,9 @@ def main():
             all_trues.append(targets)
 
     # 合并所有 batch
-    all_preds = torch.cat(all_preds, dim=0)
-    all_trues = torch.cat(all_trues, dim=0)
+    all_preds = torch.cat(all_preds, dim=0).flatten()
+    all_trues = torch.cat(all_trues, dim=0).flatten()
+
 
     # 计算指标
     mse = F.mse_loss(all_preds, all_trues).item()
