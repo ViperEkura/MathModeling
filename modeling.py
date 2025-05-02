@@ -57,8 +57,10 @@ def r2_score_func(y_true: torch.Tensor, y_pred: torch.Tensor):
     sst = torch.sum((y_true - y_mean) ** 2)
     sse = torch.sum((y_true - y_pred) ** 2)
     r2 = 1 - sse / sst
-    return r2.item()
+    return r2
 
+def mae_loss(y_true: torch.Tensor, y_pred: torch.Tensor) -> torch.Tensor:
+    return torch.mean(torch.abs(y_true - y_pred))
 
 def main():
     input_features = ['PM10','SO2', 'NO2', 'CO', 'O3', 'TEMP'
@@ -158,12 +160,17 @@ def main():
     with torch.no_grad():
         test_data['Predicted_PM2_5'] = model(all_features).cpu().numpy()
 
-    r2_score = r2_score_func(
-        torch.tensor(test_data['PM2.5'].values, dtype=torch.float32),
-        torch.tensor(test_data['Predicted_PM2_5'].values, dtype=torch.float32)
-    )
+    y_true = torch.tensor(test_data['PM2.5'].values, dtype=torch.float32)
+    y_pred = torch.tensor(test_data['Predicted_PM2_5'].values, dtype=torch.float32)
+    
+    mse = F.mse_loss(y_pred, y_true).item()
+    r2_score = r2_score_func(y_true, y_pred).item()
+    mae = mae_loss(y_true, y_pred).item()
+    
+    print(f"MSE: {mse:.4f}")
+    print(f"R2: {r2_score:.4f}")
+    print(f"MAE: {mae:.4f}")
 
-    print(f"R2 Score: {r2_score:.4f}")
     test_data.to_csv("test_predictions.csv", index=False)
     torch.save(model.state_dict(), 'model.pt')
 

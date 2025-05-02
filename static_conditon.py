@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 import pandas as pd
 
-from modeling import Predictor, r2_score_func
+from modeling import Predictor, r2_score_func, mae_loss
 from torch.utils.data import Dataset, DataLoader
 
 
@@ -68,10 +68,12 @@ def main():
 
     # 计算指标
     mse = F.mse_loss(all_preds, all_trues).item()
-    r2 = r2_score_func(all_trues, all_preds)
+    r2 = r2_score_func(all_trues, all_preds).item()
+    mae = mae_loss(all_preds, all_trues).item()
     
     print(f"MSE: {mse:.4f}")
     print(f"R2: {r2:.4f}")
+    print(f"MAE: {mae:.4f}")
     
 
 if __name__ == '__main__':
