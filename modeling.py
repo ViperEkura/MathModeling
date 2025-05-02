@@ -165,6 +165,7 @@ def main():
 
     print(f"R2 Score: {r2_score:.4f}")
     all_data.to_csv("test_predictions.csv", index=False)
+    torch.save(model.state_dict(), 'model.pt')
 
 if __name__ == '__main__':
     main()
