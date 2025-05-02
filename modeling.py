@@ -50,7 +50,7 @@ class Predictor(nn.Module):
         x = self.out(x)
         return x
     
-def r2_score(y_true: torch.Tensor, y_pred: torch.Tensor):
+def r2_score_func(y_true: torch.Tensor, y_pred: torch.Tensor):
     # 计算均值
     y_mean = torch.mean(y_true)
     # 计算总平方和（SST）和残差平方和（SSE）
@@ -66,7 +66,7 @@ def main():
                       , 'PRES', 'RAIN', 'WSPM']
     target_feature = ['PM2.5']
     
-    epochs = 20
+    epochs = 15
     batch_size = 32
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     learning_rate=0.001
@@ -155,10 +155,18 @@ def main():
     model.eval()
     all_data = test_dataset.data.copy()
     all_features = torch.tensor(test_dataset.features, dtype=torch.float32).to(device)
+    
     with torch.no_grad():
         all_data['Predicted_PM2_5'] = model(all_features).cpu().numpy()
-    all_data.to_csv("test_predictions.csv", index=False)
 
+    # 修复：将 Pandas Series 转为 Tensor
+    r2_score = r2_score_func(
+        torch.tensor(all_data['PM2.5'].values, dtype=torch.float32),
+        torch.tensor(all_data['Predicted_PM2_5'].values, dtype=torch.float32)
+    )
+
+    print(f"R2 Score: {r2_score:.4f}")
+    all_data.to_csv("test_predictions.csv", index=False)
 
 if __name__ == '__main__':
     main()
