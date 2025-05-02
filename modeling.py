@@ -152,19 +152,19 @@ def main():
     plt.close()
     
     model.eval()
-    all_data = test_dataset.data.copy()
+    test_data = test_dataset.data.copy()
     all_features = torch.tensor(test_dataset.features, dtype=torch.float32).to(device)
     
     with torch.no_grad():
-        all_data['Predicted_PM2_5'] = model(all_features).cpu().numpy()
+        test_data['Predicted_PM2_5'] = model(all_features).cpu().numpy()
 
     r2_score = r2_score_func(
-        torch.tensor(all_data['PM2.5'].values, dtype=torch.float32),
-        torch.tensor(all_data['Predicted_PM2_5'].values, dtype=torch.float32)
+        torch.tensor(test_data['PM2.5'].values, dtype=torch.float32),
+        torch.tensor(test_data['Predicted_PM2_5'].values, dtype=torch.float32)
     )
 
     print(f"R2 Score: {r2_score:.4f}")
-    all_data.to_csv("test_predictions.csv", index=False)
+    test_data.to_csv("test_predictions.csv", index=False)
     torch.save(model.state_dict(), 'model.pt')
 
 if __name__ == '__main__':

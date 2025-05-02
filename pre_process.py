@@ -53,56 +53,57 @@ def winsorize_iqr(df, features, threshold=1.5):
         print(f"Winsorized {lower_outliers} lower and {upper_outliers} upper outliers from {feature}")
     return cleaned_df
 
-df = pd.read_csv('data.csv', na_values=['NA'])
-df['datetime'] = pd.to_datetime(df[['year','month','day','hour']])
-df['wd'] = df['wd'].map(direction_map)
+if __name__ == "__main__":
+    df = pd.read_csv('data.csv', na_values=['NA'])
+    df['datetime'] = pd.to_datetime(df[['year','month','day','hour']])
+    df['wd'] = df['wd'].map(direction_map)
 
-processed_df = df.copy()
-processed_df = winsorize_iqr(processed_df, features)
-processed_df['wd'], x_components, y_components = circular_interpolate(processed_df['wd'], LARGE_GAP_THRESHOLD)
-processed_df['wd_sin'] = y_components
-processed_df['wd_cos'] = x_components
+    processed_df = df.copy()
+    processed_df = winsorize_iqr(processed_df, features)
+    processed_df['wd'], x_components, y_components = circular_interpolate(processed_df['wd'], LARGE_GAP_THRESHOLD)
+    processed_df['wd_sin'] = y_components
+    processed_df['wd_cos'] = x_components
 
-for feature in features_without_wd:
-    # 1. 标记连续缺失段
-    is_na = processed_df[feature].isna()
-    na_groups = (is_na != is_na.shift()).cumsum()
-    gap_sizes = is_na.groupby(na_groups).transform('size')
-    
-    # 2. 只对小段缺失进行线性插值
-    small_gaps = gap_sizes <= LARGE_GAP_THRESHOLD
-    processed_df[feature] = processed_df[feature].where(
-        ~small_gaps,  # 保留大段缺失为NaN
-        processed_df[feature].interpolate(method='linear')  # 小段线性插值
-    )
+    for feature in features_without_wd:
+        # 1. 标记连续缺失段
+        is_na = processed_df[feature].isna()
+        na_groups = (is_na != is_na.shift()).cumsum()
+        gap_sizes = is_na.groupby(na_groups).transform('size')
+        
+        # 2. 只对小段缺失进行线性插值
+        small_gaps = gap_sizes <= LARGE_GAP_THRESHOLD
+        processed_df[feature] = processed_df[feature].where(
+            ~small_gaps,  # 保留大段缺失为NaN
+            processed_df[feature].interpolate(method='linear')  # 小段线性插值
+        )
 
-processed_df.to_csv('processed_data.csv', index=False)
+    processed_df.to_csv('processed_data.csv', index=False)
 
-# 绘制处理前后的缺失值对比图
-plt.figure(figsize=(15, 6))
+    # 绘制处理前后的缺失值对比图
+    plt.figure(figsize=(15, 6))
 
-# 原始缺失情况
-plt.subplot(2, 1, 1)
-sns.heatmap(df[features].isna().T, 
-            cbar=False,
-            cmap='viridis',
-            yticklabels=True)
-plt.title("Original Missing Values")
-plt.xlabel("Data Records")
-plt.ylabel("Features")  
-plt.yticks(rotation=0)
+    # 原始缺失情况
+    plt.subplot(2, 1, 1)
+    sns.heatmap(df[features].isna().T, 
+                cbar=False,
+                cmap='viridis',
+                yticklabels=True)
+    plt.title("Original Missing Values")
+    plt.xlabel("Data Records")
+    plt.ylabel("Features")  
+    plt.yticks(rotation=0)
 
-# 处理后的缺失情况
-plt.subplot(2, 1, 2)
-sns.heatmap(processed_df[features].isna().T, 
-            cbar=False,
-            cmap='viridis',
-            yticklabels=True)
-plt.title(f"After Processing (Gaps > {LARGE_GAP_THRESHOLD} hours kept as NaN)")
-plt.xlabel("Data Records")
-plt.ylabel("Features")  
-plt.yticks(rotation=0)
+    # 处理后的缺失情况
+    plt.subplot(2, 1, 2)
+    sns.heatmap(processed_df[features].isna().T, 
+                cbar=False,
+                cmap='viridis',
+                yticklabels=True)
+    plt.title(f"After Processing (Gaps > {LARGE_GAP_THRESHOLD} hours kept as NaN)")
+    plt.xlabel("Data Records")
+    plt.ylabel("Features")  
+    plt.yticks(rotation=0)
 
-plt.tight_layout()
-plt.savefig('missing_values_comparison.png')
+    plt.tight_layout()
+    plt.savefig('missing_values_comparison.png')
 
