@@ -2,10 +2,10 @@ import torch
 import pandas as pd
 import torch.nn as nn
 
-
 from torch import Tensor
-from torch.utils.data import Dataset
-
+from torch.utils.data import Dataset, DataLoader
+from torch.optim import Adam
+from torch.nn import MSELoss
 
 class AirQualityDataset(Dataset):
     def __init__(self, file_path, feature_columns, target_column):
@@ -26,7 +26,12 @@ class AirQualityDataset(Dataset):
 class LSTM_predictor(nn.Module):
     def __init__(self, input_size, hidden_size, output_size, num_layers):
         super(LSTM_predictor, self).__init__()
-        self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
+        self.lstm = nn.LSTM(
+            input_size, 
+            hidden_size,
+            num_layers, 
+            batch_first=True
+        )
         self.norm = nn.LayerNorm(hidden_size)
         self.fc = nn.Linear(hidden_size, output_size)
     
@@ -38,18 +43,52 @@ class LSTM_predictor(nn.Module):
     
 
 class Transformer_predictor(nn.Module):
-    def __init__(self, input_size, hidden_size, output_size, num_layers):
+    def __init__(self, input_size, hidden_size, output_size, num_heads=8, dropout=0.1):
         super(Transformer_predictor, self).__init__()
-        self.attention = nn.Transformer(
-            d_model=hidden_size, 
-            dim_feedforward=4*hidden_size, 
-            batch_first=True)
+        self.input_projection = nn.Linear(input_size, hidden_size)
+        self.attention = nn.MultiheadAttention(
+            hidden_size, 
+            num_heads, 
+            dropout=dropout, 
+            batch_first=True
+        )
         self.norm = nn.LayerNorm(hidden_size)
         self.fc = nn.Linear(hidden_size, output_size)
-        
+
+    def forward(self, x):
+        res = self.input_projection(x)
+        x = self.norm(res)
+        attn_output, _ = self.attention(x, x, x)
+        attn_output = attn_output + res
+        return attn_output
     
-    def forward(self, x: Tensor):
-        x = self.attention(x)
-        x = self.norm(x)
-        x = self.fc(x)
-        return x
+
+def train_model(model, dataset, batch_size=32, epochs=10, learning_rate=0.001, device='cpu'):
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+    criterion = MSELoss() 
+    optimizer = Adam(model.parameters(), lr=learning_rate)
+
+    model.to(device)
+
+    for epoch in range(epochs):
+        model.train() 
+        total_loss = 0
+
+        for batch_idx, (features, targets) in enumerate(dataloader):
+            features = features.to(device)
+            targets = targets.to(device)
+
+            outputs = model(features)
+            loss = criterion(outputs, targets)
+
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+            total_loss += loss.item()
+
+            if (batch_idx + 1) % 10 == 0:
+                print(f"Epoch [{epoch+1}/{epochs}], Batch [{batch_idx+1}/{len(dataloader)}], Loss: {loss.item():.4f}")
+
+        avg_loss = total_loss / len(dataloader)
+        print(f"Epoch [{epoch+1}/{epochs}], Average Loss: {avg_loss:.4f}")
