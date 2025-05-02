@@ -88,7 +88,7 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     learning_rate=0.001
     save_plot_path='training_loss.png'
-    wspm_weight = 4.0  # WSPM < 1时的损失权重
+    wspm_weight = 8.0  # WSPM < 1时的损失权重
     
     model = Predictor(
         input_size=len(input_features), 
