@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 
-
 # 定义"大段缺失"的阈值（例如连续50小时以上）
 LARGE_GAP_THRESHOLD = 50
 
@@ -16,7 +15,6 @@ direction_map = {
     'S':180, 'SSW':202.5, 'SW':225, 'WSW':247.5,
     'W':270, 'WNW':292.5, 'NW':315, 'NNW':337.5
 }
-
 
 def circular_interpolate(series:pd.DataFrame, max_gap: int):
     is_na = series.isna()
@@ -36,21 +34,30 @@ def circular_interpolate(series:pd.DataFrame, max_gap: int):
 
     return interpolated_series, x_interp, y_interp
 
+def remove_iqr_outliers(df, features, threshold=1.5):
+    cleaned_df = df.copy()
+    for feature in features:
+        Q1 = cleaned_df[feature].quantile(0.25)
+        Q3 = cleaned_df[feature].quantile(0.75)
+        IQR = Q3 - Q1
+        lower_bound = Q1 - threshold * IQR
+        upper_bound = Q3 + threshold * IQR
+        
+        # 标记超出IQR范围的值
+        mask = (cleaned_df[feature] < lower_bound) | (cleaned_df[feature] > upper_bound)
+        cleaned_df.loc[mask, feature] = np.nan
+        print(f"Removed {mask.sum()} IQR outliers from {feature}")
+    return cleaned_df
+
 
 df = pd.read_csv('data.csv', na_values=['NA'])
 df['datetime'] = pd.to_datetime(df[['year','month','day','hour']])
 df['wd'] = df['wd'].map(direction_map)
 
 processed_df = df.copy()
-processed_df['wd'], x_components, y_components = \
-    circular_interpolate(processed_df['wd'], LARGE_GAP_THRESHOLD)
+processed_df['wd'], x_components, y_components = circular_interpolate(processed_df['wd'], LARGE_GAP_THRESHOLD)
 processed_df['wd_sin'] = y_components
 processed_df['wd_cos'] = x_components
-
-# 添加正弦和余弦分量作为新特征
-processed_df['wd_sin'] = y_components
-processed_df['wd_cos'] = x_components
-
 
 for feature in features_without_wd:
     # 1. 标记连续缺失段
