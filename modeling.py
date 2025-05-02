@@ -64,7 +64,14 @@ class Transformer_predictor(nn.Module):
         return attn_output
     
 
-def train_model(model:nn.Module, dataset: Dataset, batch_size=32, epochs=10, learning_rate=0.001, device='cuda'):
+def train_model(
+    model:nn.Module, 
+    dataset: Dataset, 
+    batch_size=32, 
+    epochs=10, 
+    learning_rate=0.001, 
+    device='cuda'
+):
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
     optimizer = Adam(model.parameters(), lr=learning_rate)
 
@@ -88,7 +95,8 @@ def train_model(model:nn.Module, dataset: Dataset, batch_size=32, epochs=10, lea
             total_loss += loss.item()
 
             if (batch_idx + 1) % 10 == 0:
-                print(f"Epoch [{epoch+1}/{epochs}], Batch [{batch_idx+1}/{len(dataloader)}], Loss: {loss.item():.4f}")
+                print(f"Epoch [{epoch+1}/{epochs}],"
+                      " Batch [{batch_idx+1}/{len(dataloader)}], Loss: {loss.item():.4f}")
 
         avg_loss = total_loss / len(dataloader)
         print(f"Epoch [{epoch+1}/{epochs}], Average Loss: {avg_loss:.4f}")
@@ -96,7 +104,10 @@ def train_model(model:nn.Module, dataset: Dataset, batch_size=32, epochs=10, lea
 
 def main():
     model = LSTM_predictor(input_size=4, hidden_size=64, output_size=1, num_layers=2)
-    dataset = AirQualityDataset('processed_data.csv', feature_columns=['PM10', 'SO2', 'NO2', 'CO'], target_column=['PM2.5'])
+    dataset = AirQualityDataset(
+        'processed_data.csv', 
+        feature_columns=['PM10', 'SO2', 'NO2', 'CO'], 
+        target_column=['PM2.5'])
     train_model(model, dataset)
 
 if __name__ == '__main__':
