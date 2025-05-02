@@ -23,9 +23,9 @@ def main():
     plt.plot(time, y_pred_np, label='Predicted PM2.5', color='#ff7f0e', linestyle='--', linewidth=2)
 
     if 'WSPM' in df.columns:
-        calm_periods = df['WSPM'] < 0.5 
+        calm_periods = df['WSPM'] < 1.0 
         plt.scatter(time[calm_periods], y_true_np[calm_periods], 
-                    color='red', s=20, label='Calm Wind (WSPM < 0.5 m/s)', alpha=0.6)
+                    color='red', s=20, label='Calm Wind (WSPM < 1.0 m/s)', alpha=0.6)
 
     plt.xlabel('Time', fontsize=12)
     plt.ylabel('PM2.5 (µg/m³)', fontsize=12)
