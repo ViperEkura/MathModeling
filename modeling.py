@@ -66,7 +66,7 @@ def main():
     target_feature = ['PM2.5']
     
     epochs = 15
-    batch_size = 32
+    batch_size = 64
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     learning_rate=0.001
     device='cuda'
@@ -158,7 +158,6 @@ def main():
     with torch.no_grad():
         all_data['Predicted_PM2_5'] = model(all_features).cpu().numpy()
 
-    # 修复：将 Pandas Series 转为 Tensor
     r2_score = r2_score_func(
         torch.tensor(all_data['PM2.5'].values, dtype=torch.float32),
         torch.tensor(all_data['Predicted_PM2_5'].values, dtype=torch.float32)

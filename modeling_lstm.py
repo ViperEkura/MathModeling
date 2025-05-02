@@ -193,24 +193,24 @@ def main():
     plt.close()
     
     # 评估模型
-    model.eval()
-    all_features = torch.tensor(test_dataset.features, dtype=torch.float32).to(device)
+    # model.eval()
+    # all_features = torch.tensor(test_dataset.features, dtype=torch.float32).to(device)
     
-    with torch.no_grad():
-        predictions = model(all_features).cpu().numpy().flatten()
+    # with torch.no_grad():
+    #     predictions = model(all_features).cpu().numpy().flatten()
     
-    # 使用保存的valid_data确保长度匹配
-    results = test_dataset.valid_data.copy()
-    results['Predicted_PM2.5'] = predictions
+    # # 使用保存的valid_data确保长度匹配
+    # results = test_dataset.valid_data.copy()
+    # results['Predicted_PM2.5'] = predictions
     
-    # 计算R2分数
-    r2_score = r2_score_func(
-        torch.tensor(results[target_feature].values, dtype=torch.float32),
-        torch.tensor(results['Predicted_PM2.5'].values, dtype=torch.float32)
-    )
+    # # 计算R2分数
+    # r2_score = r2_score_func(
+    #     torch.tensor(results[target_feature].values, dtype=torch.float32),
+    #     torch.tensor(results['Predicted_PM2.5'].values, dtype=torch.float32)
+    # )
 
-    print(f"R2 Score: {r2_score:.4f}")
-    results.to_csv("test_predictions.csv", index=False)
+    # print(f"R2 Score: {r2_score:.4f}")
+    # results.to_csv("test_predictions.csv", index=False)
 
 if __name__ == '__main__':
     main()

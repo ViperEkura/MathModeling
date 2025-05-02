@@ -34,7 +34,7 @@ def circular_interpolate(series:pd.DataFrame, max_gap: int):
 
     return interpolated_series, x_interp, y_interp
 
-def remove_iqr_outliers(df, features, threshold=1.5):
+def winsorize_iqr(df, features, threshold=1.5):
     cleaned_df = df.copy()
     for feature in features:
         Q1 = cleaned_df[feature].quantile(0.25)
@@ -43,18 +43,22 @@ def remove_iqr_outliers(df, features, threshold=1.5):
         lower_bound = Q1 - threshold * IQR
         upper_bound = Q3 + threshold * IQR
         
-        # 标记超出IQR范围的值
-        mask = (cleaned_df[feature] < lower_bound) | (cleaned_df[feature] > upper_bound)
-        cleaned_df.loc[mask, feature] = np.nan
-        print(f"Removed {mask.sum()} IQR outliers from {feature}")
+        # 计算超出边界的值的数量
+        lower_outliers = (cleaned_df[feature] < lower_bound).sum()
+        upper_outliers = (cleaned_df[feature] > upper_bound).sum()
+        
+        # 截断处理
+        cleaned_df[feature] = cleaned_df[feature].clip(lower=lower_bound, upper=upper_bound)
+        
+        print(f"Winsorized {lower_outliers} lower and {upper_outliers} upper outliers from {feature}")
     return cleaned_df
-
 
 df = pd.read_csv('data.csv', na_values=['NA'])
 df['datetime'] = pd.to_datetime(df[['year','month','day','hour']])
 df['wd'] = df['wd'].map(direction_map)
 
 processed_df = df.copy()
+processed_df = winsorize_iqr(processed_df, features)
 processed_df['wd'], x_components, y_components = circular_interpolate(processed_df['wd'], LARGE_GAP_THRESHOLD)
 processed_df['wd_sin'] = y_components
 processed_df['wd_cos'] = x_components
