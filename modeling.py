@@ -38,25 +38,24 @@ class AirQualityDataset(Dataset):
 class Predictor(nn.Module):
     def __init__(self, input_size, hidden_size, output_size):
         super(Predictor, self).__init__()
-        self.norm = nn.LayerNorm(input_size)
+        self.norm_in = nn.BatchNorm1d(input_size)
         self.fc = nn.Linear(input_size, hidden_size)
         self.gate = nn.Linear(hidden_size, hidden_size)
+        self.norm_out = nn.BatchNorm1d(hidden_size)
         self.out = nn.Linear(hidden_size, output_size)
         
     def forward(self, x: Tensor):
-        x = self.norm(x)
+        x = self.norm_in(x)
         x = self.fc(x)
         x = x * F.sigmoid(self.gate(x))
+        self.norm_out(x)
         x = self.out(x)
         return x
     
 def r2_score_func(y_true: torch.Tensor, y_pred: torch.Tensor):
-    # 计算均值
     y_mean = torch.mean(y_true)
-    # 计算总平方和（SST）和残差平方和（SSE）
     sst = torch.sum((y_true - y_mean) ** 2)
     sse = torch.sum((y_true - y_pred) ** 2)
-    # 计算 R²
     r2 = 1 - sse / sst
     return r2.item()
 

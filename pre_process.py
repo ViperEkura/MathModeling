@@ -17,33 +17,40 @@ direction_map = {
     'W':270, 'WNW':292.5, 'NW':315, 'NNW':337.5
 }
 
-df = pd.read_csv('data.csv', na_values=['NA'])
-df['datetime'] = pd.to_datetime(df[['year','month','day','hour']])
-df['wd'] = df['wd'].map(direction_map)
 
-#对风向映射进行插值处理
 def circular_interpolate(series:pd.DataFrame, max_gap: int):
     is_na = series.isna()
     na_groups = (is_na != is_na.shift()).cumsum()
     gap_sizes = is_na.groupby(na_groups).transform('size')
     small_gaps = gap_sizes <= max_gap
-    
-    # 转换为复数坐标
     radians = np.deg2rad(series)
+    
     x = np.cos(radians)
     y = np.sin(radians)
-    
+
     x_interp = x.interpolate(method='linear')
     y_interp = y.interpolate(method='linear')
-    # 转化为角度
-    interpolated = np.rad2deg(np.arctan2(y_interp, x_interp)) % 360
-    return series.where(~small_gaps, interpolated)
 
+    interpolated_angle = np.rad2deg(np.arctan2(y_interp, x_interp)) % 360
+    interpolated_series = series.where(~small_gaps, interpolated_angle)
+
+    return interpolated_series, x_interp, y_interp
+
+
+df = pd.read_csv('data.csv', na_values=['NA'])
+df['datetime'] = pd.to_datetime(df[['year','month','day','hour']])
+df['wd'] = df['wd'].map(direction_map)
 
 processed_df = df.copy()
+processed_df['wd'], x_components, y_components = \
+    circular_interpolate(processed_df['wd'], LARGE_GAP_THRESHOLD)
+processed_df['wd_sin'] = y_components
+processed_df['wd_cos'] = x_components
 
-# 特殊处理风向特征
-processed_df['wd'] = circular_interpolate(processed_df['wd'], LARGE_GAP_THRESHOLD)
+# 添加正弦和余弦分量作为新特征
+processed_df['wd_sin'] = y_components
+processed_df['wd_cos'] = x_components
+
 
 for feature in features_without_wd:
     # 1. 标记连续缺失段
