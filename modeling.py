@@ -71,7 +71,6 @@ def main():
     batch_size = 64
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     learning_rate=0.001
-    device='cuda'
     save_plot_path='training_loss.png'
     
     model = Predictor(
