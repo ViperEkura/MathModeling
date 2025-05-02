@@ -11,7 +11,6 @@ class StaticCondition(Dataset):
         self.data = pd.read_csv(file_path)
         self.data = self.data[self.data['WSPM'] < 1.0]
         self.data.dropna(inplace=True)
-        print(self.data)
 
         self.features = self.data[feature_columns].values
         self.targets = self.data[target_column].values
