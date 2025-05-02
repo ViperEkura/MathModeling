@@ -5,13 +5,20 @@ import torch.nn.functional as F
 import matplotlib.pyplot as plt
 
 from torch import Tensor
-from torch.utils.data import Dataset, DataLoader, random_split
+from torch.utils.data import Dataset, DataLoader
 from torch.optim import AdamW
 
 
 class AirQualityDataset(Dataset):
-    def __init__(self, file_path, feature_columns, target_column):
+    def __init__(self, file_path, feature_columns, target_column, training):
         self.data = pd.read_csv(file_path)
+        if training:
+            index = (self.data["year"] >= 2013) & (self.data["year"] <= 2015)
+            self.data = self.data[index]
+        else:
+            index = self.data["year"] >= 2016
+            self.data = self.data[index]
+            
         self.data.dropna(inplace=True)
 
         self.features = self.data[feature_columns].values
@@ -32,7 +39,7 @@ class Predictor(nn.Module):
     def __init__(self, input_size, hidden_size, output_size):
         super(Predictor, self).__init__()
         self.norm = nn.LayerNorm(input_size)
-        self.fc = nn.LSTM(input_size, hidden_size)
+        self.fc = nn.Linear(input_size, hidden_size)
         self.gate = nn.Linear(hidden_size, hidden_size)
         self.out = nn.Linear(hidden_size, output_size)
         
@@ -42,23 +49,48 @@ class Predictor(nn.Module):
         x = x * F.sigmoid(self.gate(x))
         x = self.out(x)
         return x
-
-
-def train_model(
-    model: nn.Module, 
-    dataset: Dataset, 
-    batch_size=32, 
-    epochs=10, 
-    learning_rate=0.001, 
-    device='cuda',
-    save_plot_path='training_loss.png',
-    test_split=0.2  # 新增参数，用于指定测试集比例
-):
-    # 划分训练集和测试集
-    test_size = int(len(dataset) * test_split)
-    train_size = len(dataset) - test_size
-    train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
     
+def r2_score(y_true: torch.Tensor, y_pred: torch.Tensor):
+    # 计算均值
+    y_mean = torch.mean(y_true)
+    # 计算总平方和（SST）和残差平方和（SSE）
+    sst = torch.sum((y_true - y_mean) ** 2)
+    sse = torch.sum((y_true - y_pred) ** 2)
+    # 计算 R²
+    r2 = 1 - sse / sst
+    return r2.item()
+
+
+def main():
+    input_features = ['PM10','SO2', 'NO2', 'CO', 'O3', 'TEMP'
+                      , 'PRES', 'RAIN', 'WSPM']
+    target_feature = ['PM2.5']
+    
+    epochs = 20
+    batch_size = 32
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    learning_rate=0.001
+    device='cuda'
+    save_plot_path='training_loss.png'
+    
+    model = Predictor(
+        input_size=len(input_features), 
+        hidden_size=len(input_features) * 4, 
+        output_size=len(target_feature), 
+    )
+
+    train_dataset = AirQualityDataset(
+        'processed_data.csv', 
+        feature_columns=input_features, 
+        target_column=target_feature,
+        training=True,
+    )
+    test_dataset = AirQualityDataset(
+        'processed_data.csv', 
+        feature_columns=input_features, 
+        target_column=target_feature,
+        training=False
+    )
     train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
     
@@ -108,7 +140,6 @@ def train_model(
         
         print(f"Epoch [{epoch+1}/{epochs}], Train Loss: {avg_train_loss:.4f}, Test Loss: {avg_test_loss:.4f}")
     
-    # 绘制训练和测试损失曲线
     plt.figure(figsize=(10, 6))
     plt.plot(range(1, epochs+1), train_losses, marker='o', linestyle='-', color='b', label='Train Loss')
     plt.plot(range(1, epochs+1), test_losses, marker='o', linestyle='-', color='r', label='Test Loss')
@@ -118,45 +149,16 @@ def train_model(
     plt.legend()
     plt.grid(True)
     
-    # 保存图像
     plt.savefig(save_plot_path)
     plt.close()
-
-
-def predict(model: nn.Module, dataset: Dataset, batch_size=32, device='cuda'):
-    model.to(device)
+    
     model.eval()
-
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
-    predictions = []
-
+    all_data = test_dataset.data.copy()
+    all_features = torch.tensor(test_dataset.features, dtype=torch.float32).to(device)
     with torch.no_grad():
-        for features, _ in dataloader:
-            features = features.to(device)
+        all_data['Predicted_PM2_5'] = model(all_features).cpu().numpy()
+    all_data.to_csv("test_predictions.csv", index=False)
 
-
-
-def main():
-    input_features = ['PM10','SO2', 'NO2', 'CO', 'O3', 'TEMP'
-                      , 'PRES', 'RAIN', 'WSPM']
-    target_feature = ['PM2.5']
-    
-    epochs = 20
-    batch_size = 32
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    
-    model = Predictor(
-        input_size=len(input_features), 
-        hidden_size=len(input_features) * 4, 
-        output_size=len(target_feature), 
-    )
-
-    dataset = AirQualityDataset(
-        'processed_data.csv', 
-        feature_columns=input_features, 
-        target_column=target_feature
-    )
-    train_model(model, dataset, batch_size=batch_size, epochs=epochs, device=device)
 
 if __name__ == '__main__':
     main()
