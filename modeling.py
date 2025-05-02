@@ -1,15 +1,17 @@
 import torch
 import pandas as pd
 import torch.nn as nn
+import torch.nn.functional as F
 
 from torch import Tensor
 from torch.utils.data import Dataset, DataLoader
 from torch.optim import Adam
-from torch.nn import MSELoss
+
 
 class AirQualityDataset(Dataset):
     def __init__(self, file_path, feature_columns, target_column):
         self.data = pd.read_csv(file_path)
+        self.data.dropna(inplace=True)
         self.features = self.data[feature_columns].values
         self.targets = self.data[target_column].values
 
@@ -17,7 +19,6 @@ class AirQualityDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, idx):
-        # 返回单个样本
         feature = torch.tensor(self.features[idx], dtype=torch.float32)
         target = torch.tensor(self.targets[idx], dtype=torch.float32)
         return feature, target
@@ -26,18 +27,18 @@ class AirQualityDataset(Dataset):
 class LSTM_predictor(nn.Module):
     def __init__(self, input_size, hidden_size, output_size, num_layers):
         super(LSTM_predictor, self).__init__()
+        self.norm = nn.LayerNorm(input_size)
         self.lstm = nn.LSTM(
             input_size, 
             hidden_size,
             num_layers, 
             batch_first=True
         )
-        self.norm = nn.LayerNorm(hidden_size)
         self.fc = nn.Linear(hidden_size, output_size)
     
     def forward(self, x: Tensor):
-        x, _ = self.lstm(x)
         x = self.norm(x)
+        x, _ = self.lstm(x)
         x = self.fc(x)
         return x
     
@@ -63,9 +64,8 @@ class Transformer_predictor(nn.Module):
         return attn_output
     
 
-def train_model(model, dataset, batch_size=32, epochs=10, learning_rate=0.001, device='cpu'):
+def train_model(model:nn.Module, dataset: Dataset, batch_size=32, epochs=10, learning_rate=0.001, device='cuda'):
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-    criterion = MSELoss() 
     optimizer = Adam(model.parameters(), lr=learning_rate)
 
     model.to(device)
@@ -79,7 +79,7 @@ def train_model(model, dataset, batch_size=32, epochs=10, learning_rate=0.001, d
             targets = targets.to(device)
 
             outputs = model(features)
-            loss = criterion(outputs, targets)
+            loss = F.mse_loss(outputs, targets)
 
             optimizer.zero_grad()
             loss.backward()
@@ -92,3 +92,12 @@ def train_model(model, dataset, batch_size=32, epochs=10, learning_rate=0.001, d
 
         avg_loss = total_loss / len(dataloader)
         print(f"Epoch [{epoch+1}/{epochs}], Average Loss: {avg_loss:.4f}")
+
+
+def main():
+    model = LSTM_predictor(input_size=4, hidden_size=64, output_size=1, num_layers=2)
+    dataset = AirQualityDataset('processed_data.csv', feature_columns=['PM10', 'SO2', 'NO2', 'CO'], target_column=['PM2.5'])
+    train_model(model, dataset)
+
+if __name__ == '__main__':
+    main()
