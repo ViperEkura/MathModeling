@@ -1,5 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator  # 新增导入
 
 if __name__ == '__main__':
     df = pd.read_csv('processed_data.csv')
@@ -14,7 +15,7 @@ if __name__ == '__main__':
     features = ['PM2.5', 'PM10', 'SO2', 'NO2', 'CO', 'O3']
 
     time_periods = {
-        "Hourly": ("hour", '24h'),
+        "Hourly": ("hour", 'Hourly'),
         "Monthly": ("month", 'Monthly'), 
         "Yearly": ("year", 'Yearly')
     }
@@ -27,21 +28,37 @@ if __name__ == '__main__':
             avg_value = df.groupby(group_key)[feature].mean()
             ax = axes[i // 3, i % 3]
             
-            # 修改为柱状图，并调整样式
-            ax.bar(avg_value.index, avg_value.values, color='skyblue', edgecolor='black')
+
+            ax.plot(avg_value.index, avg_value.values, 
+                    marker='o',
+                    linestyle='-',
+                    linewidth=2,
+                    color='royalblue',
+                    markersize=6,
+                    markerfacecolor='red')
             
-            ax.set_title(f'{feature} - {suffix}')
+            ax.set_title(f'{feature} - {suffix}', fontsize=12, pad=10)
             
-            # 设置坐标轴标签
             xlabel_map = {
                 'hour': "Hour of Day",
                 'month': "Month",
                 'year': "Year"
             }
-            ax.set_xlabel(xlabel_map.get(group_key, group_key))
-            ax.set_ylabel("Average Value")
-            ax.grid(True, axis='y')  # 仅显示水平网格线
-
+            ax.set_xlabel(xlabel_map.get(group_key, group_key), fontsize=10)
+            ax.set_ylabel("Average Value", fontsize=10)
             
-        plt.tight_layout()
+            ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+            
+            if group_key == 'hour':
+                ax.set_xticks(range(0, 24, 2))
+            elif group_key == 'month':
+                ax.set_xticks(range(1, 13))
+
+            ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+            
+            ax.grid(True, linestyle='--', alpha=0.6)
+            ax.set_axisbelow(True)
+                
+        plt.tight_layout(pad=3.0)
         plt.savefig(f'average_features_{period}.png', dpi=150, bbox_inches='tight')
+        plt.close()
