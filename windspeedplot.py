@@ -11,7 +11,7 @@ if  __name__ == '__main__':
 
 
 
-    df['WSPM_bins'] = pd.cut(df['WSPM'], bins=np.arange(0, df['WSPM'].max() + 1, 1))
+    df['WSPM_bins'] = pd.cut(df['WSPM'], bins=np.arange(0, df['WSPM'].max() + 0.5, 0.5))
 
     fig = plt.figure(figsize=(20, 10))
     plt.subplots_adjust(wspace=0.5, hspace=0.5)

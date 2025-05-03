@@ -69,14 +69,6 @@ class AirQualityModel:
         test_data['Predicted_PM2_5'] = predictions
         
         return test_data, mse, r2
-    
-    def plot_feature_importance(self):
-        if self.model is not None:
-            lgb.plot_importance(self.model, importance_type='gain')
-            plt.title('Feature Importance')
-            plt.show()
-        else:
-            print("Model not trained yet.")
 
 def main():
     # Initialize model
@@ -93,9 +85,6 @@ def main():
     
     # Save predictions
     test_data_with_preds.to_csv("test_predictions_lgbm.csv", index=False)
-    
-    # Plot feature importance
-    model.plot_feature_importance()
     
     print(f"\nFinal Metrics: MSE={mse:.4f}, R²={r2:.4f}")
 
