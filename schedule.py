@@ -2,19 +2,18 @@ import pulp
 
 model = pulp.LpProblem("Minimize_Cost", pulp.LpMinimize)
 
-x1 = pulp.LpVariable('x1', lowBound=0, upBound=2, cat=pulp.LpInteger)
-x2 = pulp.LpVariable('x2', lowBound=0, upBound=3, cat=pulp.LpInteger)
-y = pulp.LpVariable('y', lowBound=0, upBound=16, cat=pulp.LpInteger)
-z1 = pulp.LpVariable('z1', lowBound=0, upBound=2, cat=pulp.LpInteger)
-z2 = pulp.LpVariable('z2', lowBound=0, upBound=2, cat=pulp.LpInteger)
-z3 = pulp.LpVariable('z3', lowBound=0, upBound=3, cat=pulp.LpInteger)
+a1 = pulp.LpVariable('a1', lowBound=0, upBound=4, cat=pulp.LpInteger)
+a2 = pulp.LpVariable('a2', lowBound=0, upBound=3, cat=pulp.LpInteger)
+b = pulp.LpVariable('b', lowBound=0, upBound=16, cat=pulp.LpInteger)
+c1 = pulp.LpVariable('c1', lowBound=0, upBound=2, cat=pulp.LpInteger)
+c2 = pulp.LpVariable('c2', lowBound=0, upBound=2, cat=pulp.LpInteger)
+c3 = pulp.LpVariable('c3', lowBound=0, upBound=3, cat=pulp.LpInteger)
 
 
-model += 5000*(x1 + x2) + 8000*y + 3000*(z1 + z2 + z3), "Total_Cost"
+model += 5000*(a1 + a2) + 8000*b + 3000*(c1 + c2 + c3), "Total_Cost"
 
-# 约束条件
-model += 3*(x1 + x2) + 5*y + 2*(z1 + z2 + z3) >= 22.12
-model += 5000*(x1 + x2) + 8000*y + 3000*(z1 + z2 + z3) <= 1e5
+model += 3*(a1 + a2) + 5*b + 2*(c1 + c2 + c3) >= 22.12
+model += 5000*(a1 + a2) + 8000*b + 3000*(c1 + c2 + c3) <= 1e5
 
 model.solve()
 

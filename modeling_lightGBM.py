@@ -13,16 +13,10 @@ class AirQualityModel:
         self.target_column = 'PM2.5'
         
     def prepare_data(self, file_path):
-        # Load and split data
         data = pd.read_csv(file_path)
-        
-        # Training data (2013-2015)
         train_data = data[(data["year"] >= 2013) & (data["year"] <= 2015)]
-        
-        # Test data (2016+)
         test_data = data[data["year"] >= 2016]
         
-        # Drop NA values
         train_data = train_data.dropna()
         test_data = test_data.dropna()
         
@@ -32,7 +26,7 @@ class AirQualityModel:
         if params is None:
             params = {
                 'objective': 'regression',
-                'metric': 'mse',  # Changed from rmse to mse
+                'metric': 'mse',
                 'boosting_type': 'gbdt',
                 'num_leaves': 31,
                 'learning_rate': 0.05,
@@ -71,19 +65,11 @@ class AirQualityModel:
         return test_data, mse, r2
 
 def main():
-    # Initialize model
     model = AirQualityModel()
-    
-    # Prepare data
     train_data, test_data = model.prepare_data('processed_data.csv')
-    
-    # Train model
     model.train(train_data)
     
-    # Evaluate model
     test_data_with_preds, mse, r2 = model.evaluate(test_data)
-    
-    # Save predictions
     test_data_with_preds.to_csv("test_predictions_lgbm.csv", index=False)
     
     print(f"\nFinal Metrics: MSE={mse:.4f}, R²={r2:.4f}")
