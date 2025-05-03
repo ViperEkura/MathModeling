@@ -33,8 +33,8 @@ class AirQualityDataset(Dataset):
             index = self.data["year"] >= 2016
             self.data = self.data[index]
             
-        self.data.dropna(inplace=True)
-
+        # self.data = self.data.fillna(self.data.mean(numeric_only=True))
+        self.data = self.data.dropna()
         self.features = self.data[feature_columns].values
         self.targets = self.data[target_column].values
         
@@ -46,7 +46,6 @@ class AirQualityDataset(Dataset):
         feature = torch.tensor(self.features[idx], dtype=torch.float32)
         target = torch.tensor(self.targets[idx], dtype=torch.float32)
         return feature, target
-
 
 
 class Predictor(nn.Module):
