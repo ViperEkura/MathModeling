@@ -25,6 +25,9 @@ if __name__ == '__main__':
         fig.suptitle(f'{period} Average of Features', fontsize=16)
         
         for i, feature in enumerate(features):
+            if period == 'Yearly':
+                df = df[df['datetime'].dt.year != 2017]
+                
             avg_value = df.groupby(group_key)[feature].mean()
             ax = axes[i // 3, i % 3]
             
