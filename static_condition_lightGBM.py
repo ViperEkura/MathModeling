@@ -1,8 +1,10 @@
 from modeling_lightGBM import AirQualityModel 
 import pandas as pd
 from sklearn.metrics import mean_squared_error, r2_score
-from modeling import mae_loss
 import torch
+
+def mae_loss(y_true: torch.Tensor, y_pred: torch.Tensor) -> torch.Tensor:
+    return torch.mean(torch.abs(y_true - y_pred))
 
 
 def evaluate_stable_weather():
@@ -14,10 +16,6 @@ def evaluate_stable_weather():
     data = pd.read_csv('processed_data.csv')
     stable_weather_data = data[data['WSPM'] < 1.0] 
     stable_weather_data.dropna(inplace=True)
-
-    if len(stable_weather_data) == 0:
-        print("没有找到符合条件的静稳天气样本。")
-        return
 
 
     X_stable = stable_weather_data[model.feature_columns]
