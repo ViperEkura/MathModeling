@@ -35,7 +35,6 @@ if __name__ == '__main__':
     plt.tight_layout()
     plt.savefig('correlation_matrix.png')
 
-    # 选择几个高度相关或感兴趣的变量对
     sns.set_theme(font_scale=1.2)
     plt.rcParams['axes.titlesize'] = 16 
     plt.rcParams['axes.labelsize'] = 14 

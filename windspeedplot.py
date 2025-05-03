@@ -11,7 +11,6 @@ if  __name__ == '__main__':
 
 
 
-    # 假设我们按每2 m/s的风速对WSPM进行分箱处理
     df['WSPM_bins'] = pd.cut(df['WSPM'], bins=np.arange(0, df['WSPM'].max() + 1, 1))
 
     fig = plt.figure(figsize=(20, 10))

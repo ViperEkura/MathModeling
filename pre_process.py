@@ -34,23 +34,30 @@ def circular_interpolate(series:pd.DataFrame, max_gap: int):
 
     return interpolated_series, x_interp, y_interp
 
-def winsorize_iqr(df, features, threshold=1.5):
+def winsorize_iqr(df, features, threshold=1.5, skip_features=None):
     cleaned_df = df.copy()
+    if skip_features is None:
+        skip_features = []
+    
     for feature in features:
+        if feature in skip_features:
+            print(f"Skipping {feature} (marked as non-processed)")
+            continue
+        
         Q1 = cleaned_df[feature].quantile(0.25)
         Q3 = cleaned_df[feature].quantile(0.75)
         IQR = Q3 - Q1
         lower_bound = Q1 - threshold * IQR
         upper_bound = Q3 + threshold * IQR
         
-        # 计算超出边界的值的数量
-        lower_outliers = (cleaned_df[feature] < lower_bound).sum()
-        upper_outliers = (cleaned_df[feature] > upper_bound).sum()
+        # 标记超出边界的值为 NaN
+        mask = (cleaned_df[feature] < lower_bound) | (cleaned_df[feature] > upper_bound)
+        cleaned_df.loc[mask, feature] = np.nan
         
-        # 截断处理
-        cleaned_df[feature] = cleaned_df[feature].clip(lower=lower_bound, upper=upper_bound)
-        
-        print(f"Winsorized {lower_outliers} lower and {upper_outliers} upper outliers from {feature}")
+        # 计算被标记为 NaN 的数量
+        num_outliers = mask.sum()
+        print(f"Marked {num_outliers} outliers as NaN in {feature} (bounds: [{lower_bound:.2f}, {upper_bound:.2f}])")
+    
     return cleaned_df
 
 if __name__ == "__main__":
@@ -59,7 +66,7 @@ if __name__ == "__main__":
     df['wd'] = df['wd'].map(direction_map)
 
     processed_df = df.copy()
-    processed_df = winsorize_iqr(processed_df, features)
+    processed_df = winsorize_iqr(processed_df, features, skip_features=['RAIN'])
     processed_df['wd'], x_components, y_components = circular_interpolate(processed_df['wd'], LARGE_GAP_THRESHOLD)
     processed_df['wd_sin'] = y_components
     processed_df['wd_cos'] = x_components
@@ -103,7 +110,6 @@ if __name__ == "__main__":
     plt.xlabel("Data Records")
     plt.ylabel("Features")  
     plt.yticks(rotation=0)
-
     plt.tight_layout()
     plt.savefig('missing_values_comparison.png')
 
