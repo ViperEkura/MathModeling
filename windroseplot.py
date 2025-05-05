@@ -9,7 +9,7 @@ if __name__ == '__main__':
                     usecols=['wd'] + features,
                     na_values=['NA', 'NaN', 'nan'])
 
-    # 绘制图像
+
     fig = plt.figure(figsize=(15, 10))
     plt.subplots_adjust(wspace=0.5, hspace=0.5)
 

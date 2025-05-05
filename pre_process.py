@@ -86,7 +86,6 @@ if __name__ == "__main__":
 
     processed_df.to_csv('processed_data.csv', index=False)
 
-    # 绘制处理前后的缺失值对比图
     plt.figure(figsize=(15, 6))
 
     # 原始缺失情况
