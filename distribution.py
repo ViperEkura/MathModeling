@@ -1,3 +1,5 @@
+# distribution.py
+
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -15,7 +17,7 @@ if __name__ == '__main__':
 
     num_vars = len(numeric_df.columns)
 
-    fig_hist, axes_hist = plt.subplots(3, 4, figsize=(20, 15))
+    fig_hist, axes_hist = plt.subplots(3, 2, figsize=(20, 15))
     axes_hist = axes_hist.flatten()
 
     for i, col in enumerate(numeric_df.columns):

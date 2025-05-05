@@ -1,3 +1,5 @@
+# prediction_plot.py
+
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -5,6 +7,7 @@ import numpy as np
 
 
 def main():
+    # 填充对应模型的的输出文件名
     df = pd.read_csv('test_predictions.csv')
     df = df[df['year'] == 2016]
 
