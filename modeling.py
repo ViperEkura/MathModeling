@@ -33,7 +33,6 @@ class AirQualityDataset(Dataset):
             index = self.data["year"] >= 2016
             self.data = self.data[index]
             
-        # self.data = self.data.fillna(self.data.mean(numeric_only=True))
         self.data = self.data.dropna()
         self.features = self.data[feature_columns].values
         self.targets = self.data[target_column].values
@@ -119,8 +118,7 @@ def main():
         model.train() 
         total_train_loss = 0
 
-        # 训练阶段
-        for batch_idx, (features, targets) in enumerate(train_dataloader):
+        for (features, targets) in train_dataloader:
             features = features.to(device)
             targets = targets.to(device)
 

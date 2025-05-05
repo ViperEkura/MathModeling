@@ -4,7 +4,7 @@ import seaborn as sns
 
 
 if __name__ == '__main__':
-    df = pd.read_csv('processed_data.csv', na_values=['NA', 'NaN', 'nan'])
+    df = pd.read_csv('data.csv', na_values=['NA', 'NaN', 'nan'])
     numeric_cols = ['PM2.5', 'PM10', 'SO2', 'NO2', 'CO', 'O3',
                     'TEMP', 'PRES', 'DEWP', 'RAIN', 'WSPM']
     available_cols = [col for col in numeric_cols if col in df.columns]
