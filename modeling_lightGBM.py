@@ -72,7 +72,7 @@ def main():
     test_data_with_preds, mse, r2 = model.evaluate(test_data)
     test_data_with_preds.to_csv("test_predictions_lgbm.csv", index=False)
     
-    print(f"\nFinal Metrics: MSE={mse:.4f}, R²={r2:.4f}")
+    print(f"\nFinal Metrics: MSE={mse:.4f}, R^2 ={r2:.4f}")
 
 if __name__ == '__main__':
     main()

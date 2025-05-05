@@ -2,9 +2,8 @@ from modeling_lightGBM import AirQualityModel
 import pandas as pd
 from sklearn.metrics import mean_squared_error, r2_score
 import torch
+import torch.nn.functional as F
 
-def mae_loss(y_true: torch.Tensor, y_pred: torch.Tensor) -> torch.Tensor:
-    return torch.mean(torch.abs(y_true - y_pred))
 
 
 def evaluate_stable_weather():
@@ -14,7 +13,7 @@ def evaluate_stable_weather():
     model.train(train_data)
 
     data = pd.read_csv('processed_data.csv')
-    stable_weather_data = data[data['WSPM'] < 1.0] 
+    stable_weather_data = data[data['WSPM'] < 1.0].copy() 
     stable_weather_data.dropna(inplace=True)
 
 
@@ -29,7 +28,7 @@ def evaluate_stable_weather():
     y_true_tensor = torch.tensor(y_stable.values, dtype=torch.float32)
     y_pred_tensor = torch.tensor(predictions, dtype=torch.float32)
 
-    mae = torch.nn.functional.l1_loss(y_true_tensor, y_pred_tensor).item()
+    mae = F.l1_loss(y_true_tensor, y_pred_tensor).item()
     stable_weather_data['Predicted_PM2_5'] = predictions
     stable_weather_data.to_csv("stable_weather_predictions_lgbm.csv", index=False)
 
