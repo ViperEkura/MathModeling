@@ -84,9 +84,6 @@ class AirQualityModel:
         print(f"R2 Score: {r2:.4f}")
         print(f"MAE: {mae:.4f}")
 
-        stable_weather_data['Predicted_PM2_5'] = predictions
-        stable_weather_data.to_csv("stable_weather_predictions_lgbm.csv", index=False)
-
         return mse, r2, mae
 
 def main():
