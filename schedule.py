@@ -14,7 +14,7 @@ c3 = pulp.LpVariable('c3', lowBound=0, upBound=3, cat=pulp.LpInteger)
 
 model += 5000*(a1 + a2) + 8000*b + 3000*(c1 + c2 + c3), "Total_Cost"
 
-model += 3*(a1 + a2) + 5*b + 2*(c1 + c2 + c3) >= 22.12
+model += 3*(a1 + a2) + 5*b + 2*(c1 + c2 + c3) >= 22.28
 model += 5000*(a1 + a2) + 8000*b + 3000*(c1 + c2 + c3) <= 1e5
 
 model.solve()
