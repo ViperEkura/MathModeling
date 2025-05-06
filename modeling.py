@@ -80,7 +80,7 @@ class Predictor(nn.Module):
         x = self.norm_in(x)
         x = self.fc(x)
         x = x * F.sigmoid(self.gate(x))
-        self.norm_out(x)
+        x = self.norm_out(x)
         x = self.out(x)
         return x
 
